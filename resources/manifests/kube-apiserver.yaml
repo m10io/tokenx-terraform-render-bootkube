@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: kube-apiserver
-        image: ${hyperkube_image}
+        image: "k8s.gcr.io/hyperkube:v1.11.3"
         command:
         - /hyperkube
         - apiserver
