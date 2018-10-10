@@ -41,6 +41,7 @@ spec:
         - ./hyperkube
         - scheduler
         - --leader-elect=true
+        - --v=8
         livenessProbe:
           httpGet:
             path: /healthz
