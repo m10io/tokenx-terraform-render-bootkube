@@ -76,6 +76,7 @@ variable "container_images" {
     hyperkube        = "k8s.gcr.io/hyperkube:v1.11.3"
     coredns          = "k8s.gcr.io/coredns:1.2.2"
     pod_checkpointer = "quay.io/coreos/pod-checkpointer:9dc83e1ab3bc36ca25c9f7c18ddef1b91d4a0558"
+    ccm              = "k8s.gcr.io/cloud-controller-manager:v1.11.3"
   }
 }
 

@@ -25,6 +25,7 @@ resource "template_dir" "manifests" {
     hyperkube_image        = "${var.container_images["hyperkube"]}"
     pod_checkpointer_image = "${var.container_images["pod_checkpointer"]}"
     coredns_image          = "${var.container_images["coredns"]}"
+    ccm_image              = "${var.container_images["ccm"]}"
 
     etcd_servers = "${join(",", formatlist("https://%s:2379", var.etcd_servers))}"
 
