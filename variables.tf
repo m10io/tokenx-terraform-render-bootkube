@@ -18,6 +18,28 @@ variable "asset_dir" {
   type        = "string"
 }
 
+variable "cluster_id" {
+  description = "The identifier for the cluster for AWS IAM authentication purposes"
+  type        = "string"
+}
+
+variable "admin_role_arns" {
+  description = "A list of ARNs that will be mapped to cluster administrators"
+  type        = "list"
+}
+
+variable "admin_role_arn_mapping_template" {
+  description = "The template that renders into yaml for the aws iam authenticator. Whitespace is important here."
+  type        = "string"
+
+  default = <<TEMPLATE
+      - roleARN: %s
+        username: admin
+        groups:
+        - system:masters
+TEMPLATE
+}
+
 variable "cloud_provider" {
   description = "The provider for cloud services (empty string for no provider)"
   type        = "string"
