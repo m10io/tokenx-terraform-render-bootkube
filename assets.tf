@@ -26,7 +26,7 @@ resource "template_dir" "manifests" {
     pod_checkpointer_image = "${var.container_images["pod_checkpointer"]}"
     coredns_image          = "${var.container_images["coredns"]}"
 
-    etcd_servers = "${join(",", formatlist("https://%s:2379", var.etcd_servers))}"
+    etcd_servers           = "${join(",", formatlist("https://%s:2379", var.etcd_servers))}"
     control_plane_replicas = "${max(2, length(var.etcd_servers))}"
 
     cloud_provider         = "${var.cloud_provider}"
@@ -47,6 +47,11 @@ resource "template_dir" "manifests" {
     etcd_ca_cert     = "${base64encode(tls_self_signed_cert.etcd-ca.cert_pem)}"
     etcd_client_cert = "${base64encode(tls_locally_signed_cert.client.cert_pem)}"
     etcd_client_key  = "${base64encode(tls_private_key.client.private_key_pem)}"
+
+    iam_authenticator_cert = "${base64encode(tls_locally_signed_cert.iam-authenticator.cert_pem)}"
+    iam_authenticator_key  = "${base64encode(tls_private_key.iam-authenticator.private_key_pem)}"
+    cluster_id             = "${var.cluster_id}"
+    iam_role_mappings      = "${join("\n", formatlist(var.admin_role_arn_mapping_template, var.admin_role_arns))}"
   }
 }
 
@@ -59,7 +64,7 @@ resource "local_file" "kubeconfig" {
 # Generated kubeconfig with user-context
 resource "local_file" "user-kubeconfig" {
   content  = "${data.template_file.user-kubeconfig.rendered}"
-  filename = "${var.asset_dir}/auth/${var.cluster_name}-config"
+  filename = "${var.asset_dir}/auth/user-config"
 }
 
 data "template_file" "kubeconfig" {
@@ -77,10 +82,9 @@ data "template_file" "user-kubeconfig" {
   template = "${file("${path.module}/resources/user-kubeconfig")}"
 
   vars {
-    name         = "${var.cluster_name}"
-    ca_cert      = "${base64encode(var.ca_certificate == "" ? join(" ", tls_self_signed_cert.kube-ca.*.cert_pem) : var.ca_certificate)}"
-    kubelet_cert = "${base64encode(tls_locally_signed_cert.kubelet.cert_pem)}"
-    kubelet_key  = "${base64encode(tls_private_key.kubelet.private_key_pem)}"
-    server       = "${format("https://%s:%s", element(var.api_servers, 0), var.apiserver_port)}"
+    name       = "${var.cluster_name}"
+    ca_cert    = "${base64encode(var.ca_certificate == "" ? join(" ", tls_self_signed_cert.kube-ca.*.cert_pem) : var.ca_certificate)}"
+    server     = "${format("https://%s:%s", element(var.api_servers, 0), var.apiserver_port)}"
+    cluster_id = "${var.cluster_id}"
   }
 }

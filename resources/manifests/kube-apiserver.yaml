@@ -29,6 +29,7 @@ spec:
         - --advertise-address=$(POD_IP)
         - --allow-privileged=true
         - --anonymous-auth=false
+        - --authentication-token-webhook-config-file=/etc/kubernetes/aws-iam-authenticator/kubeconfig
         - --authorization-mode=RBAC
         - --bind-address=0.0.0.0
         - --client-ca-file=/etc/kubernetes/secrets/ca.crt
@@ -59,6 +60,9 @@ spec:
         - mountPath: /etc/kubernetes/secrets
           name: secrets
           readOnly: true
+        - mountPath: /etc/kubernetes/aws-iam-authenticator
+          name: aws-iam-authenticator-kubconfig
+          readOnly: true
       hostNetwork: true
       nodeSelector:
         node-role.kubernetes.io/master: ""
@@ -73,6 +77,9 @@ spec:
       - name: secrets
         secret:
           secretName: kube-apiserver
+      - name: aws-iam-authenticator-kubconfig
+        configMap:
+          name: aws-iam-authenticator-kubeconfig
   updateStrategy:
     rollingUpdate:
       maxUnavailable: 1
