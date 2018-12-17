@@ -27,6 +27,40 @@ spec:
           operator: Exists
         - effect: NoExecute
           operator: Exists
+      initContainers:
+        # Install Calico CNI binaries and CNI network config file on nodes
+        - name: install-cni
+          image: ${calico_cni_image}
+          command: ["/install-cni.sh"]
+          env:
+            # Name of the CNI config file to create on each node.
+            - name: CNI_CONF_NAME
+              value: "10-calico.conflist"
+            # Set node name based on k8s nodeName
+            - name: KUBERNETES_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # Contents of the CNI config to create on each node.
+            - name: CNI_NETWORK_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: cni_network_config
+            - name: CNI_NET_DIR
+              value: "/etc/kubernetes/cni/net.d"
+            - name: CNI_MTU
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: veth_mtu
+            - name: SLEEP
+              value: "false"
+          volumeMounts:
+            - name: cni-bin-dir
+              mountPath: /host/opt/cni/bin
+            - name: cni-conf-dir
+              mountPath: /host/etc/cni/net.d
       containers:
         - name: calico-node
           image: ${calico_image}
@@ -43,6 +77,8 @@ spec:
                 configMapKeyRef:
                   name: calico-config
                   key: typha_service_name
+            - name: FELIX_USAGEREPORTINGENABLED
+              value: "${enable_reporting}"
             # Set node name based on k8s nodeName.
             - name: NODENAME
               valueFrom:
@@ -112,61 +148,30 @@ spec:
                 - -felix-ready
             periodSeconds: 10
           volumeMounts:
-            - mountPath: /lib/modules
-              name: lib-modules
+            - name: lib-modules
+              mountPath: /lib/modules
               readOnly: true
-            - mountPath: /run/xtables.lock
-              name: xtables-lock
+            - name: var-lib-calico
+              mountPath: /var/lib/calico
               readOnly: false
-            - mountPath: /var/run/calico
-              name: var-run-calico
+            - name: var-run-calico
+              mountPath: /var/run/calico
               readOnly: false
-            - mountPath: /var/lib/calico
-              name: var-lib-calico
+            - name: xtables-lock
+              mountPath: /run/xtables.lock
               readOnly: false
-        # Install Calico CNI binaries and CNI network config file on nodes
-        - name: install-cni
-          image: ${calico_cni_image}
-          command: ["/install-cni.sh"]
-          env:
-            # Name of the CNI config file to create on each node.
-            - name: CNI_CONF_NAME
-              value: "10-calico.conflist"
-            # Set node name based on k8s nodeName
-            - name: KUBERNETES_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-            # Contents of the CNI config to create on each node.
-            - name: CNI_NETWORK_CONFIG
-              valueFrom:
-                configMapKeyRef:
-                  name: calico-config
-                  key: cni_network_config
-            - name: CNI_NET_DIR
-              value: "/etc/kubernetes/cni/net.d"
-            - name: CNI_MTU
-              valueFrom:
-                configMapKeyRef:
-                  name: calico-config
-                  key: veth_mtu
-          volumeMounts:
-            - mountPath: /host/opt/cni/bin
-              name: cni-bin-dir
-            - mountPath: /host/etc/cni/net.d
-              name: cni-net-dir
       terminationGracePeriodSeconds: 0
       volumes:
         # Used by calico/node
         - name: lib-modules
           hostPath:
             path: /lib/modules
-        - name: var-run-calico
-          hostPath:
-            path: /var/run/calico
         - name: var-lib-calico
           hostPath:
             path: /var/lib/calico
+        - name: var-run-calico
+          hostPath:
+            path: /var/run/calico
         - name: xtables-lock
           hostPath:
             type: FileOrCreate
@@ -175,6 +180,6 @@ spec:
         - name: cni-bin-dir
           hostPath:
             path: /opt/cni/bin
-        - name: cni-net-dir
+        - name: cni-conf-dir
           hostPath:
             path: /etc/kubernetes/cni/net.d
