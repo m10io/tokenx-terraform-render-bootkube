@@ -51,7 +51,7 @@ spec:
         - --tls-private-key-file=/etc/kubernetes/secrets/apiserver.key
         - --oidc-issuer-url=${odic_url}
         - --oidc-client-id=${odic_client_id}
-        - --oidc-username-claim=${odic_username-claim}
+        - --oidc-username-claim=${odic_user_claim}
         - --oidc-groups-claim=${odic_groups_claim}
         env:
         - name: POD_IP
