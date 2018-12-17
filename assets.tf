@@ -52,6 +52,11 @@ resource "template_dir" "manifests" {
     iam_authenticator_key  = "${base64encode(tls_private_key.iam-authenticator.private_key_pem)}"
     cluster_id             = "${var.cluster_id}"
     iam_role_mappings      = "${join("\n", formatlist(var.admin_role_arn_mapping_template, var.admin_role_arns))}"
+
+    odic_url = "${var.odic_url}"
+    odic_client_id = "${var.odic_client_id}"
+    odic_user_claim = "${var.odic_user_claim}"
+    odic_groups_claim = "${var.odic_groups_claim}"
   }
 }
 

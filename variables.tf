@@ -132,6 +132,25 @@ variable "ca_private_key" {
   default     = ""
 }
 
+variable "odic_url" {
+  description = "The URL of an ODIC server to connect to"
+}
+
+variable "odic_client_id" {
+  description = "The client ID for ODIC auth"
+  default = "kubernetes"
+}
+
+variable "odic_user_claim" {
+  description = "The user claim for ODIC auth"
+  default = "email"
+}
+
+variable "odic_groups_claim" {
+  description = "The groups claim for ODIC groups"
+  default = "groups"
+}
+
 # unofficial, temporary, may be removed without notice
 
 variable "apiserver_port" {
